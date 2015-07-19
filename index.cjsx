@@ -1,5 +1,4 @@
 {ROOT, EXROOT} = global
-{log, warn, error} = require '../../lib/utils'
 {ROOT, layout, _, $, $$, React, ReactBootstrap} = window
 {Label, OverlayTrigger, Tooltip} = ReactBootstrap
 
@@ -7,6 +6,7 @@ fs = require 'fs-extra'
 path = require 'path'
 CSON = require 'cson'
 
+{log, warn, error} = require(path.join(ROOT, 'lib', 'utils'))
 questDataPath = path.join(EXROOT, 'questdata.cson')
 
 submarines = [530, 531, 532, 533, 534, 535, 570, 571, 572]
@@ -471,6 +471,7 @@ module.exports =
         else
           setProgressByTask task, @state.progress[i], @track
       # lower the frequency saving settings to increase performance
+      @tracks = _.sortBy @tracks, (e) -> e.id
       saveTracker @track
       # refresh quests
       for task, i in tasks
