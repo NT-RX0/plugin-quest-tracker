@@ -8,7 +8,7 @@ A poi plugin for quest tracking
 
 定制版剧透插件
 
-https://github.com/PHELiOX/plugin-prophet/tree/another
+https://github.com/PHELiOX/plugin-prophet/tree/add-event
 
 剧透面板改
 
