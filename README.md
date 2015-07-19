@@ -12,7 +12,7 @@ https://github.com/PHELiOX/plugin-prophet/tree/another
 
 剧透面板改
 
-https://github.com/PHELiOX/poi/blob/add-questtracking-support/views/components/main/parts/task-panel.cjsx
+https://raw.githubusercontent.com/PHELiOX/poi/add-questtracking-support/views/components/main/parts/task-panel.cjsx
 
 效果图
 
