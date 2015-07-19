@@ -11,4 +11,4 @@ https://github.com/PHELiOX/plugin-prophet/tree/another
 https://github.com/PHELiOX/poi/blob/add-questtracking-support/views/components/main/parts/task-panel.cjsx
 
 效果图
-[pic]()
+[pic](https://github.com/PHELiOX/plugin-quest-tracker/raw/master/screenshot.jpg)
