@@ -255,11 +255,12 @@ module.exports =
                   when '/kcsapi/api_req_mission/result'
                     switch task.id
                       when 410, 411
-                        if body.api_quest_name is "東京急行" or body.api_quest_name is "東京急行(弐)"
-                          progress += 1
-                          flag = true
+                        if body.api_clear_result > 0
+                          if body.api_quest_name is "東京急行" or body.api_quest_name is "東京急行(弐)"
+                            progress += 1
+                            flag = true
                       when 402, 403, 404
-                        if body.api_clear_result > 1
+                        if body.api_clear_result > 0
                           progress += 1
                           flag = true
               when 5
@@ -512,11 +513,11 @@ module.exports =
       window.dispatchEvent event
     componentWillMount: ->
       # Read saved config
-      @track = Object.clone(readTracker())
-      if not Array.isArray(@track)
+      track = readTracker()
+      if not Array.isArray(track)
         warn "no quest track id #{@memberId}"
-        @track = []
-
+        track = []
+      @track = Object.clone(track)
       idx = _.findIndex @track, (t) -> t.id == CODEA
       if idx != -1
         codeA = Object.clone(@track[idx])
