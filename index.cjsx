@@ -302,7 +302,7 @@ module.exports =
                   when '/kcsapi/api_req_kaisou/powerup'
                     switch task.id
                       when 702, 703
-                        if body.api_success == 1
+                        if body.api_powerup_flag == 1
                           progress += 1
                           flag = true
             newProgress[i] = progress = if progress > target then target else progress
