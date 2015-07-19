@@ -1,6 +1,7 @@
 # plugin-quest-tracker
 
 A poi plugin for quest tracking
+
 ===
 
 目前需要定制任务面板和剧透插件才能工作
