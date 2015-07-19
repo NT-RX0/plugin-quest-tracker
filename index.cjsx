@@ -407,7 +407,7 @@ module.exports =
             if @mapArea == 5 and @mapInfo == 2
               if @isBoss
                 switch @rank
-                  when "A", "S", "B"
+                  when "S"
                     progress += 1
                     flag = true
           # near 1-5
@@ -415,7 +415,7 @@ module.exports =
             if @mapArea == 1 and @mapInfo == 5
               if @isBoss
                 switch @rank
-                  when "A", "S", "B"
+                  when "A", "S"
                     progress += 1
                     flag = true
           # Code A # fight, boss fight, S, boss S
