@@ -13,9 +13,12 @@ submarines = [530, 531, 532, 533, 534, 535, 570, 571, 572]
 aircraftcarriers = [510, 512, 523, 525, 528, 560, 565, 579]
 supplyships = [558, 526, 513]
 
-trackpool = [
+trackpooldaily = [
   #daily
-  201, 216, 210, 218, 226, 230, 211, 212, 303, 304, 402, 403, 503, 504, 605, 606, 607, 608, 609, 619, 702,
+  201, 216, 210, 218, 226, 230, 211, 212, 303, 304, 402, 403, 503, 504, 605, 606, 607, 608, 609, 619, 702
+]
+
+trackpoolweekly = [
   #weekly
   214, 220, 213, 221, 228, 229, 241, 242, 243, 261, 302, 404, 410, 411, 613, 703
 ]
@@ -118,7 +121,7 @@ getTargetById = (id) ->
       return 1
 
 getProgressById = (id, track) ->
-  if id not in trackpool
+  if id not in trackpooldaily.concat trackpoolweekly
     return 0
   idx = _.findIndex track, (t) ->
     t.id == id
@@ -128,7 +131,7 @@ getProgressById = (id, track) ->
     return track[idx].progress
 
 setProgressByTask = (task, progress, track) ->
-  if task.id not in trackpool
+  if task.id not in trackpooldaily.concat trackpoolweekly
     return
   idx = _.findIndex track, (t) ->
     t.id == task.id
@@ -191,15 +194,15 @@ module.exports =
     mapInfo: 0
     isBoss: false
     rank: ""
+    percent: [0, 0, 0, 0, 0, 0]
+    progress: [0, 0, 0, 0, 0, 0]
+    target: [1, 1, 1, 1, 1, 1]
+    codeA: [0, 0, 0, 0]       # fight, S, boss fight, boss SAB
+    codeAtarget: [36, 6, 24, 12]
+    nowHp: null
+    enemyId: null
     tasks: [Object.clone(emptyTask), Object.clone(emptyTask), Object.clone(emptyTask),
             Object.clone(emptyTask), Object.clone(emptyTask), Object.clone(emptyTask)]
-    getInitialState: ->
-      percent: [0, 0, 0, 0, 0, 0]
-      progress: [0, 0, 0, 0, 0, 0]
-      target: [1, 1, 1, 1, 1, 1]
-      codeA: [0, 0, 0, 0]       # fight, boss fight, S, boss S
-      nowHp: null
-      enemyId: null
     handleResponse: (e) ->
       flag = false
       {method, path, body, postBody} = e.detail
@@ -221,8 +224,8 @@ module.exports =
           for task, i in @tasks
             continue if !task? or task.id is 100000
             # calibrate current progress
-            progress = @state.progress[i]
-            target = @state.target[i]
+            progress = @progress[i]
+            target = @target[i]
             # id 分类
             cat = getCategoryById task.id
             switch cat
@@ -244,6 +247,7 @@ module.exports =
                   when '/kcsapi/api_req_practice/battle_result'
                     switch task.id
                       when 303
+                        flag = true
                         progress += 1
                       when 304, 302
                         switch body.api_win_rank
@@ -309,18 +313,18 @@ module.exports =
             newTarget[i] = target
             newPercent[i] = Math.floor(progress / target * 100)
             # Save progress by memberId and questId
-            setProgressByTask task, progress, @track
+            if task.id != CODEA
+              setProgressByTask task, progress, @track
             saveTracker @track
           if flag
-            @setState
-              progress: newProgress
-              target: newTarget
-              percent: newPercent
-            event = new CustomEvent 'task.update',
+            @progress = newProgress
+            @target = newTarget
+            @percent = newPercent
+          event = new CustomEvent 'task.update',
               bubbles: true
               cancelable: true
               detail:
-                codeA: @state.codeA
+                codeA: @codeA
                 percent: newPercent
                 progress: newProgress
                 target: newTarget
@@ -331,14 +335,14 @@ module.exports =
       newPercent = [0, 0, 0, 0, 0, 0]
       newProgress = [0, 0, 0, 0, 0, 0]
       newTarget = [1, 1, 1, 1, 1, 1]
-      codeA = [0, 0, 0, 0]
+      codeA = @codeA
       if not isCombined
         nowHp = nowHp[5..11]   # add 0 slot
         @rank = rank
       for task, i in @tasks
         continue if !task? or task.id is 100000
-        progress = @state.progress[i]
-        target = @state.target[i]
+        progress = @progress[i]
+        target = @target[i]
         switch task.id
           # fight
           when 216, 210
@@ -418,23 +422,21 @@ module.exports =
                   when "A", "S"
                     progress += 1
                     flag = true
-          # Code A # fight, boss fight, S, boss S
+          # Code A # fight, S, boss fight, boss SAB
           when 214
-            codeA[0] += 1
-            progress += 1
+            if codeA[0] < codeAtarget[0]
+              codeA[0] += 1
             flag = true
-            if @isBoss
-              codeA[1] += 1
-              progress += 1
-              flag = true
             if @rank == "S"
-              codeA[2] += 1
-              progress += 1
-              flag = true
-            if @isBoss and @rank == "S"
-              codeA[3] += 1
-              progress += 1
-              flag = true
+              if codeA[1] < codeAtarget[1]
+                codeA[1] += 1
+            if @isBoss
+              if codeA[2] < codeAtarget[2]
+                codeA[2] += 1
+            if @isBoss and (@rank == "S" || "A" || "B")
+              if codeA[3] < codeAtarget[3]
+                codeA[3] += 1
+            progress = codeA.reduce (a, b) -> a + b
         newProgress[i] = progress = if progress > target then target else progress
         newTarget[i] = target
         newPercent[i] = Math.floor(progress / target * 100)
@@ -445,32 +447,32 @@ module.exports =
           setProgressByTask task, progress, @track
         saveTracker @track
       if flag
-        @setState
+        @codeA = codeA
+        @progress = newProgress
+        @target = newTarget
+        @percent = newPercent
+      event = new CustomEvent 'task.update',
+        bubbles: true
+        cancelable: true
+        detail:
           codeA: codeA
+          percent: newPercent
           progress: newProgress
           target: newTarget
-          percent: newPercent
-        event = new CustomEvent 'task.update',
-          bubbles: true
-          cancelable: true
-          detail:
-            codeA: codeA
-            percent: newPercent
-            progress: newProgress
-            target: newTarget
-        window.dispatchEvent event
+      window.dispatchEvent event
     handleTaskDidChange: (e) ->
       {tasks} = e.detail
       newPercent = [0, 0, 0, 0, 0, 0]
       newProgress = [0, 0, 0, 0, 0, 0]
       newTarget = [1, 1, 1, 1, 1, 1]
+      codeA = @codeA
       # Save Data
       for task, i in @tasks
         continue unless task?
         if task.id == CODEA
-          setProgressByTask task, @state.codeA, @track
+          setProgressByTask task, @codeA, @track
         else
-          setProgressByTask task, @state.progress[i], @track
+          setProgressByTask task, @progress[i], @track
       # lower the frequency saving settings to increase performance
       @tracks = _.sortBy @tracks, (e) -> e.id
       saveTracker @track
@@ -478,6 +480,8 @@ module.exports =
       for task, i in tasks
         if task.id == CODEA
           codeA = getProgressById task.id, @track
+          if codeA == 0
+            codeA = [0, 0, 0, 0]
           progress = codeA.reduce (a, b) -> a + b
         else
           progress = getProgressById task.id, @track
@@ -496,11 +500,10 @@ module.exports =
         newTarget[i] = target
         newPercent[i] = percent = Math.floor(progress / target * 100)
       @tasks = Object.clone tasks
-      @setState
-        codeA: codeA
-        progress: newProgress
-        target: newTarget
-        percent: newPercent
+      @codeA = codeA
+      @progress = newProgress
+      @target = newTarget
+      @percent = newPercent
       # notify shipview
       event = new CustomEvent 'task.update',
         bubbles: true
@@ -520,10 +523,9 @@ module.exports =
       @track = Object.clone(track)
       idx = _.findIndex @track, (t) -> t.id == CODEA
       if idx != -1
-        codeA = Object.clone(@track[idx])
-        @track[idx].progress = codeA.reduce (a, b) -> a + b
-      setState:
-        codeA: codeA
+        codeA = Object.clone(@track[idx].progress)
+        @track[idx].progress = codeA
+      @codeA = codeA
     componentDidMount: ->
       window.addEventListener "task.change", @handleTaskDidChange
       window.addEventListener "battle.result", @handleBattleResult
