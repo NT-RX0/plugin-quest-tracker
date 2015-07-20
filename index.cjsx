@@ -25,6 +25,14 @@ trackpoolweekly = [
 
 CODEA = 214
 
+# Local time -> Task Refresh time(GMT + 4)
+getCurrentDay = ->
+  curTime = new Date()
+  curTime.setTime(curTime.getTime() + (curTime.getTimezoneOffset() + 240) * 60000)
+  curTime.getDay()
+
+prevDay = getCurrentDay()
+
 # TODO: merge quest requirement with quest.cson
 getTargetById = (id) ->
   switch id
@@ -424,17 +432,17 @@ module.exports =
                     flag = true
           # Code A # fight, S, boss fight, boss SAB
           when 214
-            if codeA[0] < codeAtarget[0]
+            if codeA[0] < @codeAtarget[0]
               codeA[0] += 1
             flag = true
             if @rank == "S"
-              if codeA[1] < codeAtarget[1]
+              if codeA[1] < @codeAtarget[1]
                 codeA[1] += 1
             if @isBoss
-              if codeA[2] < codeAtarget[2]
+              if codeA[2] < @codeAtarget[2]
                 codeA[2] += 1
             if @isBoss and (@rank == "S" || "A" || "B")
-              if codeA[3] < codeAtarget[3]
+              if codeA[3] < @codeAtarget[3]
                 codeA[3] += 1
             progress = codeA.reduce (a, b) -> a + b
         newProgress[i] = progress = if progress > target then target else progress
@@ -514,6 +522,15 @@ module.exports =
           progress: newProgress
           target: newTarget
       window.dispatchEvent event
+    refreshTrack: ->
+      curDay = getCurrentDay()
+      return if prevDay == curDay
+      @track.filter (t) -> t.type not in [2, 4, 5]
+      if curDay is 1
+        @track.filter (t) -> t.type not in [3]
+      @track = _.sortBy @track, (t) -> t.id
+      saveTracker @track
+      prevDay = curDay
     componentWillMount: ->
       # Read saved config
       track = readTracker()
@@ -530,11 +547,13 @@ module.exports =
       window.addEventListener "task.change", @handleTaskDidChange
       window.addEventListener "battle.result", @handleBattleResult
       window.addEventListener "game.response", @handleResponse
+      @interval = setInterval @refreshTrack, 30000
       # window.addEventListener "window.beforeclose", @saveTracker
     componentWillUnmount: ->
       window.removeEventListener "task.change", @handleTaskDidChange
       window.removeEventListener "battle.result", @handleBattleResult
       window.removeEventListener "game.response", @handleResponse
+      clearInterval @interval
       # window.removeEventListener "window.beforeclose", @saveTracker
     render: ->
       <div/>
