@@ -194,7 +194,7 @@ module.exports =
   displayName: <span><FontAwesome key={0} name='check-circle-o' /> 任务进度</span>
   description: '跟踪激活中的任务完成情况'
   show: true
-  version: '0.1.0'
+  version: '1.0.0'
   reactClass: React.createClass
     track: []
     memberId: 0
@@ -542,7 +542,7 @@ module.exports =
       if idx != -1
         codeA = Object.clone(@track[idx].progress)
         @track[idx].progress = codeA
-      @codeA = codeA
+        @codeA = codeA
     componentDidMount: ->
       window.addEventListener "task.change", @handleTaskDidChange
       window.addEventListener "battle.result", @handleBattleResult
