@@ -4,13 +4,13 @@ A poi plugin for quest tracking
 
 ===
 
-**目前需要定制任务面板和剧透插件才能工作**
+**目前需要定制任务面板和最新版剧透插件才能工作**
 
 定制版剧透插件
 
 https://github.com/PHELiOX/plugin-prophet/tree/add-event
 
-剧透面板改
+剧透面板改（可选）
 
 https://raw.githubusercontent.com/PHELiOX/poi/add-questtracking-support/views/components/main/parts/task-panel.cjsx
 
