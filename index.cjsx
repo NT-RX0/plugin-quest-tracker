@@ -189,7 +189,7 @@ emptyTask =
 
 module.exports =
   name: 'QuestTracker'
-  priority: 15
+  priority: 10
   author: <span><a key={0} href="https://github.com/PHELiOX">Artoria</a></span>
   displayName: <span><FontAwesome key={0} name='check-circle-o' /> 任务进度</span>
   description: '跟踪激活中的任务完成情况'
@@ -525,9 +525,9 @@ module.exports =
     refreshTrack: ->
       curDay = getCurrentDay()
       return if prevDay == curDay
-      @track.filter (t) -> t.type not in [2, 4, 5]
+      @track = @track.filter (t) -> t.type not in [2, 4, 5]
       if curDay is 1
-        @track.filter (t) -> t.type not in [3]
+        @track = @track.filter (t) -> t.type not in [3]
       @track = _.sortBy @track, (t) -> t.id
       saveTracker @track
       prevDay = curDay
